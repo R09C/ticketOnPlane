@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  password String
+  basket   Basket?
+  role     Role    @default(USER)
+  salt     Int
+}
+
+model Basket {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int     @unique
+  tiket     Tiket[]
+  passageid Int
+}
+
+model Passage {
+  id        Int      @id @default(autoincrement())
+  from      String
+  to        String
+  timefrom  DateTime
+  timeto    DateTime
+  purchased Int      @default(0)
+  tiket     Tiket[]
+  Plane     Plane?   @relation(fields: [planeId], references: [id])
+  planeId   Int?
+}
+
+model Tiket {
+  id               Int             @id @default(autoincrement())
+  price            Int
+  basket           Basket?         @relation(fields: [basketId], references: [id])
+  basketId         Int?
+  passage          Passage?        @relation(fields: [passageId], references: [id])
+  passageId        Int
+  Place_Category   Place_Category? @relation(fields: [place_CategoryId], references: [id])
+  place_CategoryId Int?
+}
+
+model Plane {
+  id             Int              @id @default(autoincrement())
+  name           String
+  coeff          Int
+  place          Int
+  passage        Passage[]
+  place_category Place_Category[]
+}
+
+model Place_Category {
+  id               Int             @id @default(autoincrement())
+  Plane            Plane?          @relation(fields: [planeId], references: [id])
+  planeId          Int?
+  place            Int
+  Tiket_Category   Tiket_Category? @relation(fields: [tiket_CategoryId], references: [id])
+  tiket_CategoryId Int?
+  tiket            Tiket[]
+}
+
+model Tiket_Category {
+  id             Int              @id @default(autoincrement())
+  name           Category         @unique
+  coeff          Int
+  place_category Place_Category[]
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Category {
+  EXTRA_VIP
+  VIP
+  BUSINESS
+  ECONOMY
+}
